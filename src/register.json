@@ -1,0 +1,20 @@
+[
+    {
+        "name": "Arjun",
+        "mobile": "9876543210",
+        "resident": "owner",
+        "email": "arjun@gmail.com",
+        "password": "Arjun@2000",
+        "block": "BLOCK A",
+        "flatnumber": "103"
+    },
+    {
+        "name": "Yuvan",
+        "mobile": "9876543211",
+        "resident": "owner",
+        "email": "yuvan@gmail.com",
+        "password": "Yuvan@2000",
+        "block": "BLOCK B",
+        "flatnumber": "102"
+    }
+]
