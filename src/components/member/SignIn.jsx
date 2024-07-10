@@ -1,20 +1,16 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../../global.css";
 import "../../index.css";
-import users from "../../db.json";
-import { useNavigate } from "react-router-dom";
+import Api from "../../Api.jsx";
 
 function SignIn() {
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
-
-  const user = {
-    mobile,
-    password,
-  };
 
   const validateForm = () => {
     const errors = {};
@@ -39,23 +35,30 @@ function SignIn() {
     return errors;
   };
 
-  const handleSubmit = (e) => {
+  const handleLoginSubmit = (e) => {
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length === 0) {
-      console.log(users);
-
-      const getUsers = users.find(
-        (data) => data.Mobile === mobile && data.Password === password
-      );
-      console.log(getUsers);
-      if (getUsers) {
-        alert("Login successful");
-        localStorage.setItem("userData", JSON.stringify(user));
-        navigate("/memberdashboard");
-      } else {
-        alert("Invalid mobile number or password");
-      }
+      Api.post("api/v1/user/login", {
+        phoneNumber: mobile,
+        password: password,
+      })
+        .then((res) => {
+          const status = res.status;
+          if (status === 200) {
+            toast.success("Login successful", {
+              autoClose: 1500, // Show success message for 1500 milliseconds
+              onClose: () => {
+                navigate("/memberdashboard");
+              },
+            });
+          }
+        })
+        .catch((error) => {
+          const errorMessage =
+            error?.response?.data?.message || "Unknown error";
+          toast.error(errorMessage);
+        });
     } else {
       setErrors(formErrors);
     }
@@ -76,12 +79,13 @@ function SignIn() {
 
   return (
     <div className="login-page">
+      <ToastContainer />
       <div className="container">
         <div className="row">
           <div className="col-lg-6">
             <div className="form-design">
               <h1 className="login-title">Member Login</h1>
-              <form onSubmit={handleSubmit} className="form">
+              <form onSubmit={handleLoginSubmit} className="form">
                 <div className="form-align">
                   <label className="form-label">
                     Registered Mobile

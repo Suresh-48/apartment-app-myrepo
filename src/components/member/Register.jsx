@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link , useNavigate} from "react-router-dom";
+import { toast } from "react-toastify";
 import "../../global.css";
 import "../../index.css";
+import Api from "../../Api.jsx";
 
 //function Component
 const Register = () => {
@@ -13,6 +15,10 @@ const Register = () => {
   const [block, setBlock] = useState("");
   const [flat, setFlat] = useState("");
   const [errors, setErrors] = useState({});
+  const [blockData, setBlockData] = useState([]);
+  const [flatData, setFlatData] = useState([]);
+
+  const navigate = useNavigate();
 
   const userDetailsres = {
     name,
@@ -62,11 +68,30 @@ const Register = () => {
     if (!flat) {
       errors.flat = "Flat number is required";
     }
-    if(!resident){
+    if (!resident) {
       errors.resident = "Resident is required";
     }
 
     return errors;
+  };
+
+  useEffect(() => {
+    getApartmentBlocks();
+    getFlatBlocks();
+  }, []);
+
+  const getApartmentBlocks = () => {
+    Api.get("/api/v1/block/get/all").then((res) => {
+      const data = res.data.data.data;
+      setBlockData(data);
+    });
+  };
+
+  const getFlatBlocks = () => {
+    Api.get("/api/v1/flat/get/all").then((res) => {
+      const data = res.data.data.data;
+      setFlatData(data);
+    });
   };
 
   //sumbit function
@@ -74,9 +99,27 @@ const Register = () => {
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length === 0) {
-      alert("Registration successful");
-      localStorage.setItem("userData", JSON.stringify(userDetailsres));
-      // Perform registration action here
+      Api.post("api/v1/user/signup", {
+        name: name,
+        blockId: block,
+        flatId: flat,
+        phoneNumber: mobile,
+        residentType: resident,
+        email: email,
+      }).then((res)=>{
+        const status = res.status;
+        const userDetails = res.data.data;
+        if(status == 200){
+          toast.success("Registration successful");
+          alert("Registration successful");
+          localStorage.setItem("userData", JSON.stringify(userDetails));
+          navigate("/memberdashboard");
+        }
+      }).catch((error) => {
+        const errorMessage = error?.response?.data?.message || "Unknown error";
+        alert(errorMessage);
+        toast.error(errorMessage);
+      });
     } else {
       setErrors(formErrors);
     }
@@ -107,7 +150,6 @@ const Register = () => {
         <div className="row">
           <div className="col-lg-6">
             <div className="reg-form">
-              {/* <img src={MyImage} alt="logo" />  */}
               <h2 className="login-title">Member Registration</h2>
               <form onSubmit={handleSubmit} className="form">
                 <div className="row">
@@ -134,11 +176,7 @@ const Register = () => {
                       onChange={handleMobileChange}
                     />
                     {errors.mobile && (
-                      <p
-                        className="err-align"
-                      >
-                        {errors.mobile}
-                      </p>
+                      <p className="err-align">{errors.mobile}</p>
                     )}
                   </div>
 
@@ -153,11 +191,7 @@ const Register = () => {
                       onChange={handleInputChange(setEmail, "email")}
                     />
                     {errors.email && (
-                      <p
-                        className="err-align"
-                      >
-                        {errors.email}
-                      </p>
+                      <p className="err-align">{errors.email}</p>
                     )}
                   </div>
                   <div className="col-lg-6 form-align">
@@ -171,11 +205,7 @@ const Register = () => {
                       onChange={handleInputChange(setPassword, "password")}
                     />
                     {errors.password && (
-                      <p
-                        className="err-align"
-                      >
-                        {errors.password}
-                      </p>
+                      <p className="err-align">{errors.password}</p>
                     )}
                   </div>
                   <div className="col-lg-6 form-align">
@@ -188,16 +218,14 @@ const Register = () => {
                       onChange={handleInputChange(setBlock, "block")}
                     >
                       <option value="">Select Block</option>
-                      <option value="A">Block A</option>
-                      <option value="B">Block B</option>
-                      <option value="C">Block C</option>
+                      {blockData.map((blockItem) => (
+                        <option key={blockItem.id} value={blockItem.id}>
+                          {blockItem.blockName}
+                        </option>
+                      ))}
                     </select>
                     {errors.block && (
-                      <p
-                        className="err-align"
-                      >
-                        {errors.block}
-                      </p>
+                      <p className="err-align">{errors.block}</p>
                     )}
                   </div>
                   <div className="col-lg-6 form-align">
@@ -210,21 +238,18 @@ const Register = () => {
                       onChange={handleInputChange(setFlat, "flat")}
                     >
                       <option value="">Select Flat</option>
-                      <option value="101">101</option>
-                      <option value="102">102</option>
-                      <option value="103">103</option>
-                      <option value="104">104</option>
+                      {flatData.map((flatItem) => (
+                        <option key={flatItem.id} value={flatItem.id}>
+                          {flatItem.flatName}
+                        </option>
+                      ))}
                     </select>
-                    {errors.flat && (
-                      <p
-                        className="err-align"
-                      >
-                        {errors.flat}
-                      </p>
-                    )}
+                    {errors.flat && <p className="err-align">{errors.flat}</p>}
                   </div>
                   <div className="col-lg-6 form-align">
-                    <label className=" form-label">Resident Type<span className="login-danger">*</span></label>
+                    <label className=" form-label">
+                      Resident Type<span className="login-danger">*</span>
+                    </label>
                     <div>
                       <input
                         type="radio"
@@ -246,9 +271,7 @@ const Register = () => {
                       </label>
                     </div>
                     {errors.resident && (
-                      <p className="err-align">
-                        {errors.resident}{" "}
-                      </p>
+                      <p className="err-align">{errors.resident} </p>
                     )}
                   </div>
                 </div>
@@ -261,7 +284,10 @@ const Register = () => {
 
               <div>
                 <p className="account-subtitle">
-                  Already have account? <Link to={"/signin"} className="cl-login">LogIn</Link>
+                  Already have account?{" "}
+                  <Link to={"/signin"} className="cl-login">
+                    LogIn
+                  </Link>
                 </p>
               </div>
             </div>

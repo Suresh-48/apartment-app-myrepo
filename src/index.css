@@ -15,8 +15,8 @@
 
 .login-page {
   background: linear-gradient(116.71deg, #1b4c80 2.09%, #5183b8 52.21%);
-  width: 1263px;
-  height: 595px;
+  width: 100vw; /* 100% of viewport width */
+  height: 100vh; /* 100% of viewport height */
   /* position: relative;
   background-image: url(/assets/banner-theme2.png);
   background-size: cover;

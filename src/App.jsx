@@ -22,7 +22,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-      <Route path="/" element={<Navigate to="/adminsignin" />} />
+      <Route path="/" element={<Navigate to="/signin" />} />
         <Route path="/signin" element={<SignIn/>}></Route>
         <Route path="/register" element={<Register />}></Route>
         <Route path="/memberdashboard" element={<MemberDashboard/>}></Route>
